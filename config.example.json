@@ -1,0 +1,25 @@
+{
+    "staticFiles": {
+        "test": "/etc/test",
+        "test2": "/etc/test2"
+    },
+    "docker": {
+        "root": "/docker/",
+        "stacks": "/docker/stacks",
+        "restartOrder": {
+            "redis": [ "wikiless", "vikunja", "send", "searxng", "quetre", "prometheus", "priviblur", "cobalt" ],
+            "mysql": [ "wakapi", "privatebin", "vikunja"]
+        }
+    },
+    "aws": {
+        "endpoint": "https://xxx.com",
+        "accessKey": "xxx",
+        "secretKey": "xxx",
+        "bucket": "xxx"
+    },
+    "gpgEmail": "hi@example.com",
+    "ntfy": {
+        "topic": "https://notify.example.com/alerts",
+        "token": "xxx"
+    }
+}
