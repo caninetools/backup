@@ -16,8 +16,6 @@
     },
     "mysql": {
         "databases": [ "database1", "database2" ],
-        "host": "localhost",
-        "port": "3306",
         "username": "root",
         "password": "password"
     }

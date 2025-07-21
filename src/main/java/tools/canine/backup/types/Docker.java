@@ -34,11 +34,11 @@ public class Docker {
             return;
         }
 
+        // stop, backup, start all containers
         logger.info("Containers: {}", containers);
-
         for (String stack : containers) {
             stopContainer(stack);
-            FileUtil.backupFile(stack, "docker", stacksRoot + "/" + stack);
+            FileUtil.backupPath(stack, "docker", stacksRoot + "/" + stack);
             startContainer(stack);
         }
     }
@@ -48,7 +48,7 @@ public class Docker {
         String command = "sudo docker compose -f \"" + stackPath + "/compose.yaml\" down";
 
         logger.info("Shutting down stack: {}", stack);
-        FileUtil.runCommand(stack, command);
+        FileUtil.runCommand(stack, command, null);
     }
 
     public void startContainer(String stack) {
@@ -56,6 +56,6 @@ public class Docker {
         String command = "sudo docker compose -f \"" + stackPath + "/compose.yaml\" up -d";
 
         logger.info("Starting stack: {}", stack);
-        FileUtil.runCommand(stack, command);
+        FileUtil.runCommand(stack, command, null);
     }
 }

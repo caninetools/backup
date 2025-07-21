@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -42,7 +43,7 @@ public class FileUtil {
      * @param output         The output zip file.
      * @return true if worked, false if failed.
      */
-    public static boolean compress(String pathToCompress, String output) {
+    public static boolean compressPath(String pathToCompress, String output) {
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(Path.of(output)))) {
             try (Stream<Path> paths = Files.walk(Path.of(pathToCompress))) {
                 paths.filter(path -> !Files.isDirectory(path))
@@ -69,66 +70,119 @@ public class FileUtil {
     }
 
     /**
-     * Backup a given file.
+     * Compress a single file into a zip archive.
      *
-     * @param name      The name of the service.
-     * @param folder    The folder to upload to.
-     * @param localPath The path to back up.
+     * @param fileToCompress The file to compress.
+     * @param output         The output zip file.
+     * @return true if compression succeeded, false otherwise.
      */
-    public static void backupFile(String name, String folder, String localPath) {
+    public static boolean compressFile(String fileToCompress, String output) {
+        Path inputFile = Path.of(fileToCompress);
+        if (!Files.exists(inputFile) || Files.isDirectory(inputFile)) {
+            logger.error("Provided path is invalid or not a file: {}", fileToCompress);
+            return false;
+        }
+
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(Path.of(output)))) {
+            String fileName = inputFile.getFileName().toString();
+            zos.putNextEntry(new ZipEntry(fileName));
+            Files.copy(inputFile, zos);
+            zos.closeEntry();
+            return true;
+        } catch (IOException exception) {
+            RequestUtil.sendAlert("Failed Compression", exception.getMessage(), "high");
+            logger.error("Unable to compress file: {}", fileToCompress, exception);
+            return false;
+        }
+    }
+
+    /**
+     * Backup a given directory path.
+     */
+    public static void backupPath(String name, String folder, String localPath) {
+        performBackup(name, folder, localPath, false);
+    }
+
+    /**
+     * Backup a given single file.
+     */
+    public static void backupFile(String name, String folder, String localFile) {
+        performBackup(name, folder, localFile, true);
+    }
+
+    /**
+     * Perform the full backup: compress, encrypt, upload, alert, and cleanup.
+     *
+     * @param name   Name of the service
+     * @param folder Folder in S3 to upload to
+     * @param source The path or file to back up
+     * @param isFile True if source is a single file, false if it's a folder
+     */
+    private static void performBackup(String name, String folder, String source, boolean isFile) {
         String baseName = name + "_" + CanineBackup.getTimeStamp();
         String prefix = folder + "/" + name + "_";
 
-        // compress the folder we want to do
         String compressedName = baseName + ".zip";
-        logger.info("Compressing '{}' to '{}'", localPath, compressedName);
-        boolean compress = FileUtil.compress(localPath, compressedName);
-        if (compress) {
-            logger.info("Finished compressing '{}'", compressedName);
-        } else {
-            logger.error("Failed to compress '{}'", localPath);
+        logger.info("Compressing '{}' to '{}'", source, compressedName);
+        boolean compress = compressSource(source, compressedName, isFile);
+        if (!compress) {
+            logger.error("Failed to compress '{}'", source);
             return;
         }
 
-        // encrypt the zip file
         String encryptedName = compressedName + ".gpg";
         logger.info("Encrypting '{}' to '{}'", compressedName, encryptedName);
         boolean encrypt = GPGUtil.encryptFile(compressedName, encryptedName, true, true);
-        if (encrypt) {
-            logger.info("Finished encrypting '{}'", encryptedName);
-        } else {
+        if (!encrypt) {
             logger.error("Failed to encrypt '{}'", compressedName);
             return;
         }
 
-        // upload the file to s3
         String destination = folder + "/" + encryptedName;
         logger.info("Uploading '{}' to '{}'", encryptedName, destination);
         boolean upload = AWSUtils.uploadFile(encryptedName, destination);
-        if (upload) {
-            logger.info("Uploaded '{}' to '{}'", encryptedName, destination);
-        } else {
+        if (!upload) {
             logger.error("Failed to upload '{}'", encryptedName);
             return;
         }
 
-        // send the alert that it was successful
-        String title = "Backup Completed (" + name + ")";
-        String description = "Backup completed successfully for '" + name + "` at " + CanineBackup.getTimeStamp();
-        RequestUtil.sendAlert(title, description, "default");
+        RequestUtil.sendAlert(
+                "Backup Completed (" + name + ")",
+                "Backup completed successfully for '" + name + "` at " + CanineBackup.getTimeStamp(),
+                "default"
+        );
 
-        // clean old backups
         AWSUtils.clean(prefix, 24);
 
-        // clean up the zipped and encrypted files
+        cleanupTempFiles(compressedName, encryptedName, name);
+    }
+
+    /**
+     * Compress a file or directory based on the mode.
+     *
+     * @param input  The path to compress
+     * @param output Output zip file
+     * @param isFile True if input is a file
+     * @return true if success
+     */
+    private static boolean compressSource(String input, String output, boolean isFile) {
+        return isFile
+                ? FileUtil.compressFile(input, output)
+                : FileUtil.compressPath(input, output);
+    }
+
+    /**
+     * Delete temporary compressed and encrypted files.
+     */
+    private static void cleanupTempFiles(String compressed, String encrypted, String name) {
         try {
-            logger.info("Cleaning up {}", compressedName);
-            logger.info("Cleaning up {}", encryptedName);
-            Files.delete(Path.of(compressedName));
-            Files.delete(Path.of(encryptedName));
+            logger.info("Cleaning up {}", compressed);
+            Files.delete(Path.of(compressed));
+            logger.info("Cleaning up {}", encrypted);
+            Files.delete(Path.of(encrypted));
         } catch (IOException exception) {
             RequestUtil.sendAlert("Failed Deletion", exception.getMessage(), "high");
-            logger.error("Failed to delete group '{}' as '{}'", name, compressedName, exception);
+            logger.error("Failed to delete backup files for '{}'", name, exception);
         }
     }
 
@@ -137,11 +191,15 @@ public class FileUtil {
      *
      * @param service The service that ran the command.
      * @param command The command.
+     * @param envVars Optional environment variables to pass (e.g., MYSQL_PWD)
      */
-    public static void runCommand(String service, String command) {
+    public static void runCommand(String service, String command, Map<String, String> envVars) {
         try {
             logger.debug("Running command: {}", command);
             ProcessBuilder pb = new ProcessBuilder("bash", "-c", command);
+            if (envVars != null) {
+                pb.environment().putAll(envVars);
+            }
             pb.inheritIO();
             Process process = pb.start();
             int exitCode = process.waitFor();

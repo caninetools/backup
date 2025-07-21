@@ -14,6 +14,6 @@ public class StaticFiles {
 
     public void backup() {
         // backup the path!
-        FileUtil.backupFile(name, name, localPath);
+        FileUtil.backupPath(name, name, localPath);
     }
 }

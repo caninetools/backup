@@ -9,6 +9,7 @@ import tools.canine.backup.types.Docker;
 import tools.canine.backup.types.MySQL;
 import tools.canine.backup.types.StaticFiles;
 import tools.canine.backup.utils.FileUtil;
+import tools.canine.backup.utils.RequestUtil;
 
 import java.io.File;
 import java.time.Instant;
@@ -73,6 +74,10 @@ public class CanineBackup {
         }
         MySQL mysql = new MySQL(databases);
         mysql.backup();
+        logger.info("MySQL databases are done!");
+
+        logger.info("Everything is done!!");
+        RequestUtil.sendAlert("Backup Complete (" + timeStamp + ")", "All backups have been completed.", "low");
     }
 
     private static void setupConfig(JSONObject json) {
