@@ -35,3 +35,5 @@ build/
 config.json
 public.pgp
 logs/
+*.zip
+*.gpg

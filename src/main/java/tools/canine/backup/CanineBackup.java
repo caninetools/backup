@@ -3,6 +3,7 @@ package tools.canine.backup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import tools.canine.backup.config.BackupConfig;
 import tools.canine.backup.types.StaticFiles;
 import tools.canine.backup.utils.FileUtil;
 
@@ -10,11 +11,12 @@ import java.io.File;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 public class CanineBackup {
 
     public static Logger logger;
-    private static JSONObject config;
+    private static BackupConfig config;
     private static String timeStamp;
     private static final String USER_AGENT = "caninebackup (+https://github.com/caninetools/backup)";
 
@@ -37,16 +39,46 @@ public class CanineBackup {
             System.exit(1);
         }
 
-        config = new JSONObject(configContents);
-        JSONObject staticGroups = config.getJSONObject("staticFiles");
-        for (String groupName : staticGroups.keySet()) {
-            String path = staticGroups.getString(groupName);
-            StaticFiles staticFiles = new StaticFiles(groupName, path);
+        // set up the config
+        config = new BackupConfig();
+        setupConfig(new JSONObject(configContents));
+
+        // handle the static paths
+        for (Map.Entry<String, String> entry : config.getStaticFiles().entrySet()) {
+            String name = entry.getKey();
+            String path = entry.getValue();
+            StaticFiles staticFiles = new StaticFiles(name, path);
             staticFiles.backup();
         }
     }
 
-    public static JSONObject getConfig() {
+    private static void setupConfig(JSONObject json) {
+        logger.info("Setting up config");
+        // add the static paths
+        JSONObject staticFiles = json.getJSONObject("staticFiles");
+        for (String group : staticFiles.keySet()) {
+            String path = staticFiles.getString(group);
+            config.addPath(group, path);
+        }
+
+        // add aws info
+        JSONObject awsInfo = json.getJSONObject("aws");
+        for (String key : awsInfo.keySet()) {
+            String value = awsInfo.getString(key);
+            config.addAwsInfo(key, value);
+        }
+
+        // add ntfy info
+        JSONObject ntfyInfo = json.getJSONObject("ntfy");
+        for (String key : ntfyInfo.keySet()) {
+            String value = ntfyInfo.getString(key);
+            config.addNtfyInfo(key, value);
+        }
+
+        config.setGpgEmail(json.getString("gpgEmail"));
+    }
+
+    public static BackupConfig getConfig() {
         return config;
     }
 

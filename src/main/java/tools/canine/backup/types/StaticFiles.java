@@ -61,7 +61,10 @@ public class StaticFiles {
             return;
         }
 
-        RequestUtil.sendAlert("Backup Completed (" + name + ")", "Backup completed successfully.", "normal");
+        // send the alert that it was successful
+        String title = "Backup Completed (" + name + ")";
+        String description = "Backup completed successfully for '" + name + "` at " + CanineBackup.getTimeStamp();
+        RequestUtil.sendAlert(title, description, "default");
 
         // clean old backups
         AWSUtils.clean(prefix, 24);

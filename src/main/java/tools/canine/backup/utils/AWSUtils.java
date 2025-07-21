@@ -27,11 +27,10 @@ public class AWSUtils {
     private static final Logger logger = LogManager.getLogger(AWSUtils.class);
 
     public static boolean uploadFile(String toUpload, String destination) {
-        JSONObject config = CanineBackup.getConfig().getJSONObject("aws");
-        String endPoint = config.getString("endpoint").replaceAll("/+$", "");
-        String accessKey = config.getString("accessKey");
-        String secretKey = config.getString("secretKey");
-        String bucket = config.getString("bucket");
+        String endPoint = CanineBackup.getConfig().getAwsInfo("endpoint").replaceAll("/+$", "");
+        String accessKey = CanineBackup.getConfig().getAwsInfo("accessKey");
+        String secretKey = CanineBackup.getConfig().getAwsInfo("secretKey");
+        String bucket = CanineBackup.getConfig().getAwsInfo("bucket");
 
         try {
             S3Client s3 = S3Client.builder()
@@ -58,11 +57,10 @@ public class AWSUtils {
     }
 
     public static void clean(String prefix, int keepCount) {
-        JSONObject config = CanineBackup.getConfig().getJSONObject("aws");
-        String endPoint = config.getString("endpoint").replaceAll("/+$", "");
-        String accessKey = config.getString("accessKey");
-        String secretKey = config.getString("secretKey");
-        String bucket = config.getString("bucket");
+        String endPoint = CanineBackup.getConfig().getAwsInfo("endpoint").replaceAll("/+$", "");
+        String accessKey = CanineBackup.getConfig().getAwsInfo("accessKey");
+        String secretKey = CanineBackup.getConfig().getAwsInfo("secretKey");
+        String bucket = CanineBackup.getConfig().getAwsInfo("bucket");
 
         try (S3Client s3 = S3Client.builder()
                 .endpointOverride(URI.create(endPoint))

@@ -25,9 +25,8 @@ public class RequestUtil {
      * @param priority The priority of the message. (min,low,default,high,max)
      */
     public static void sendAlert(String title, String body, String priority) {
-        JSONObject config = CanineBackup.getConfig().getJSONObject("ntfy");
-        String topic = config.getString("topic");
-        String token = config.getString("token");
+        String topic = CanineBackup.getConfig().getNtfyInfo("topic");
+        String token = CanineBackup.getConfig().getNtfyInfo("token");
         HttpRequest alertRequest = HttpRequest.newBuilder()
                 .uri(URI.create(topic))
                 .header("Authorization", "Bearer " + token)
@@ -38,8 +37,8 @@ public class RequestUtil {
                 .build();
 
         try {
-            client.send(alertRequest, HttpResponse.BodyHandlers.ofString());
-            logger.info("Sent ntfy message to topic {} with title '{}'", topic, title);
+            HttpResponse<String> response = client.send(alertRequest, HttpResponse.BodyHandlers.ofString());
+            logger.info("Sent ntfy message to topic {} with title '{}': Response {} - {}", topic, title, response.statusCode(), response.body());
         } catch (IOException | InterruptedException exception) {
             logger.error("Unable to send ntfy alert", exception);
         }
