@@ -2,8 +2,11 @@ package tools.canine.backup;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import tools.canine.backup.config.BackupConfig;
+import tools.canine.backup.types.Docker;
+import tools.canine.backup.types.MySQL;
 import tools.canine.backup.types.StaticFiles;
 import tools.canine.backup.utils.FileUtil;
 
@@ -11,6 +14,7 @@ import java.io.File;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class CanineBackup {
@@ -41,24 +45,43 @@ public class CanineBackup {
 
         // set up the config
         config = new BackupConfig();
-        setupConfig(new JSONObject(configContents));
+        JSONObject configJson = new JSONObject(configContents);
+        setupConfig(configJson);
 
-        // handle the static paths
+        // backup the static files!
+        logger.info("Starting static files...");
         for (Map.Entry<String, String> entry : config.getStaticFiles().entrySet()) {
-            String name = entry.getKey();
+            String service = entry.getKey();
             String path = entry.getValue();
-            StaticFiles staticFiles = new StaticFiles(name, path);
+            StaticFiles staticFiles = new StaticFiles(service, path);
             staticFiles.backup();
         }
+        logger.info("Static files are done!");
+
+        // backup the containers!
+        logger.info("Starting docker stacks backup...");
+        Docker docker = new Docker(configJson.getString("dockerStacks"));
+        docker.backup();
+        logger.info("Docker stacks are done!");
+
+        logger.info("Starting MySQL databases backup...");
+        JSONObject mysqlConfig = configJson.getJSONObject("mysql");
+        JSONArray databasesArray = mysqlConfig.getJSONArray("databases");
+        ArrayList<String> databases = new ArrayList<>();
+        for (int i = 0; i < databasesArray.length(); i++) {
+            databases.add(databasesArray.getString(i));
+        }
+        MySQL mysql = new MySQL(databases);
+        mysql.backup();
     }
 
     private static void setupConfig(JSONObject json) {
         logger.info("Setting up config");
         // add the static paths
         JSONObject staticFiles = json.getJSONObject("staticFiles");
-        for (String group : staticFiles.keySet()) {
-            String path = staticFiles.getString(group);
-            config.addPath(group, path);
+        for (String service : staticFiles.keySet()) {
+            String path = staticFiles.getString(service);
+            config.addPath(service, path);
         }
 
         // add aws info
@@ -75,7 +98,13 @@ public class CanineBackup {
             config.addNtfyInfo(key, value);
         }
 
-        config.setGpgEmail(json.getString("gpgEmail"));
+        // add mysql info
+        JSONObject mysqlInfo = json.getJSONObject("mysql");
+        for (String key : mysqlInfo.keySet()) {
+            if (key.equalsIgnoreCase("databases")) continue;
+            String value = mysqlInfo.getString(key);
+            config.addMysqlInfo(key, value);
+        }
     }
 
     public static BackupConfig getConfig() {

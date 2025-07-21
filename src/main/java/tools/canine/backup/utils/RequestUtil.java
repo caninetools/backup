@@ -2,7 +2,6 @@ package tools.canine.backup.utils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 import tools.canine.backup.CanineBackup;
 
 import java.io.IOException;

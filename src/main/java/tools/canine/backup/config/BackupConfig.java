@@ -8,17 +8,7 @@ public class BackupConfig {
     private final Map<String, String> staticFiles = new HashMap<>();
     private final Map<String, String> awsInfo = new HashMap<>();
     private final Map<String, String> ntfyInfo = new HashMap<>();
-    private String gpgEmail;
-
-    /**
-     * Get the file path.
-     *
-     * @param name The name of the path.
-     * @return The path.
-     */
-    public String getPath(String name) {
-        return staticFiles.get(name);
-    }
+    private final Map<String, String> mysqlInfo = new HashMap<>();
 
     /**
      * Add a path.
@@ -80,20 +70,22 @@ public class BackupConfig {
     }
 
     /**
-     * Get the GPG recipient email. This is who the backups are for.
+     * Add MySQL information.
      *
-     * @return The email.
+     * @param name  The key.
+     * @param value The value of the key.
      */
-    public String getGpgEmail() {
-        return gpgEmail;
+    public void addMysqlInfo(String name, String value) {
+        mysqlInfo.put(name, value);
     }
 
     /**
-     * Set the GPG recipient email for backups.
+     * Get MySQL info.
      *
-     * @param gpgEmail The email.
+     * @param name The name of the key to get.
+     * @return The value of said key.
      */
-    public void setGpgEmail(String gpgEmail) {
-        this.gpgEmail = gpgEmail;
+    public String getMysqlInfo(String name) {
+        return mysqlInfo.get(name);
     }
 }
