@@ -3,23 +3,22 @@
         "test": "/etc/test",
         "test2": "/etc/test2"
     },
-    "docker": {
-        "root": "/docker/",
-        "stacks": "/docker/stacks",
-        "restartOrder": {
-            "redis": [ "wikiless", "vikunja", "send", "searxng", "quetre", "prometheus", "priviblur", "cobalt" ],
-            "mysql": [ "wakapi", "privatebin", "vikunja"]
-        }
-    },
+    "dockerStacks": "/docker/stacks",
     "aws": {
-        "endpoint": "https://xxx.com",
-        "accessKey": "xxx",
+        "endpoint": "xxx",
+        "accessKey": "xx",
         "secretKey": "xxx",
         "bucket": "xxx"
     },
-    "gpgEmail": "hi@example.com",
     "ntfy": {
         "topic": "https://notify.example.com/alerts",
         "token": "xxx"
+    },
+    "mysql": {
+        "databases": [ "database1", "database2" ],
+        "host": "localhost",
+        "port": "3306",
+        "username": "root",
+        "password": "password"
     }
 }
