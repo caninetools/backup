@@ -45,15 +45,15 @@ public class Docker {
 
     public void stopContainer(String stack) {
         String stackPath = stacksRoot + "/" + stack;
-        String command = "sudo docker compose -f \"" + stackPath + "/compose.yaml\" down";
+        String command = "sudo docker compose -f \"" + stackPath + "/compose.yaml\" stop";
 
-        logger.info("Shutting down stack: {}", stack);
+        logger.info("Stopping stack: {}", stack);
         FileUtil.runCommand(stack, command, null);
     }
 
     public void startContainer(String stack) {
         String stackPath = stacksRoot + "/" + stack;
-        String command = "sudo docker compose -f \"" + stackPath + "/compose.yaml\" up -d";
+        String command = "sudo docker compose -f \"" + stackPath + "/compose.yaml\" start";
 
         logger.info("Starting stack: {}", stack);
         FileUtil.runCommand(stack, command, null);
