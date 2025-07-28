@@ -146,7 +146,7 @@ public class FileUtil {
             return;
         }
 
-        RequestUtil.sendAlert("regular", "Backup Completed (" + name + ")", "Backup completed successfully for '" + name + "` at " + CanineBackup.getTimeStamp(), "default");
+        RequestUtil.sendAlert("normal", "Backup Completed (" + name + ")", "Backup completed successfully for '" + name + "` at " + CanineBackup.getTimeStamp(), "default");
 
         AWSUtils.clean(prefix, 24);
 
