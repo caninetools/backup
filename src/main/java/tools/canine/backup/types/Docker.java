@@ -29,7 +29,7 @@ public class Docker {
                     .map(path -> path.getFileName().toString())
                     .toList();
         } catch (IOException exception) {
-            RequestUtil.sendAlert("Failed Docker", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Failed Docker", exception.getMessage(), "high");
             logger.error("Unable to get stacks folder", exception);
             return;
         }

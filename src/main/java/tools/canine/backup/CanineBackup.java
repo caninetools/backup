@@ -77,7 +77,7 @@ public class CanineBackup {
         logger.info("MySQL databases are done!");
 
         logger.info("Everything is done!!");
-        RequestUtil.sendAlert("Backup Complete (" + timeStamp + ")", "All backups have been completed.", "low");
+        RequestUtil.sendAlert("regular", "Backup Complete (" + timeStamp + ")", "All backups have been completed.", "default");
     }
 
     private static void setupConfig(JSONObject json) {

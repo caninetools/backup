@@ -48,7 +48,7 @@ public class MySQL {
                 logger.info("Cleaning up {}", databaseDump);
                 Files.delete(Path.of(databaseDump));
             } catch (IOException exception) {
-                RequestUtil.sendAlert("Failed Deletion", exception.getMessage(), "high");
+                RequestUtil.sendAlert("failure", "Failed Deletion", exception.getMessage(), "high");
                 logger.error("Failed to delete backup files for '{}'", databaseDump, exception);
             }
         }

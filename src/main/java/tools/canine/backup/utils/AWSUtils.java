@@ -47,7 +47,8 @@ public class AWSUtils {
             s3.close();
             return true;
         } catch (Exception exception) {
-            RequestUtil.sendAlert("Failed Upload", exception.getMessage(), "high");
+            String description = toUpload + " failed to upload because: " + exception.getMessage();
+            RequestUtil.sendAlert("failure", "Failed Upload", description, "max");
             logger.error("Unable to upload file", exception);
             return false;
         }
@@ -95,7 +96,7 @@ public class AWSUtils {
             logger.info("Deleted {} old backup(s)", toDelete.size());
 
         } catch (Exception exception) {
-            RequestUtil.sendAlert("Cleanup Failed", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Cleanup Failed", exception.getMessage(), "high");
             logger.error("Failed to clean up old backups", exception);
         }
     }

@@ -19,12 +19,24 @@ public class RequestUtil {
     /**
      * Send ntfy message.
      *
+     * @param type     The type of alert, good or bad.
      * @param title    Title of message.
      * @param body     Description of message.
      * @param priority The priority of the message. (min,low,default,high,max)
      */
-    public static void sendAlert(String title, String body, String priority) {
-        String topic = CanineBackup.getConfig().getNtfyInfo("topic");
+    public static void sendAlert(String type, String title, String body, String priority) {
+        String topic = null;
+        if (type.equalsIgnoreCase("normal")) {
+            topic = CanineBackup.getConfig().getNtfyInfo("normal-alerts");
+        }
+        if (type.equalsIgnoreCase("failure")) {
+            topic = CanineBackup.getConfig().getNtfyInfo("failure-alerts");
+        }
+        if (topic == null) {
+            logger.error("Unable to send alert, topic is null.");
+            return;
+        }
+
         String token = CanineBackup.getConfig().getNtfyInfo("token");
         HttpRequest alertRequest = HttpRequest.newBuilder()
                 .uri(URI.create(topic))

@@ -56,14 +56,14 @@ public class FileUtil {
                             } catch (NoSuchFileException e) {
                                 logger.warn("File disappeared during compression: {}", path);
                             } catch (IOException exception) {
-                                RequestUtil.sendAlert("Failed Compression", exception.getMessage(), "high");
+                                RequestUtil.sendAlert("failure", "Failed Compression", exception.getMessage(), "max");
                                 logger.error("Unable to compress file: {}", path, exception);
                             }
                         });
             }
             return true;
         } catch (IOException exception) {
-            RequestUtil.sendAlert("Failed Compression", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Failed Compression", exception.getMessage(), "max");
             logger.error("Unable to compress folder: {}", pathToCompress, exception);
             return false;
         }
@@ -90,7 +90,7 @@ public class FileUtil {
             zos.closeEntry();
             return true;
         } catch (IOException exception) {
-            RequestUtil.sendAlert("Failed Compression", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Failed Compression", exception.getMessage(), "max");
             logger.error("Unable to compress file: {}", fileToCompress, exception);
             return false;
         }
@@ -146,11 +146,7 @@ public class FileUtil {
             return;
         }
 
-        RequestUtil.sendAlert(
-                "Backup Completed (" + name + ")",
-                "Backup completed successfully for '" + name + "` at " + CanineBackup.getTimeStamp(),
-                "default"
-        );
+        RequestUtil.sendAlert("regular", "Backup Completed (" + name + ")", "Backup completed successfully for '" + name + "` at " + CanineBackup.getTimeStamp(), "default");
 
         AWSUtils.clean(prefix, 24);
 
@@ -181,7 +177,7 @@ public class FileUtil {
             logger.info("Cleaning up {}", encrypted);
             Files.delete(Path.of(encrypted));
         } catch (IOException exception) {
-            RequestUtil.sendAlert("Failed Deletion", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Failed Deletion", exception.getMessage(), "high");
             logger.error("Failed to delete backup files for '{}'", name, exception);
         }
     }
@@ -205,11 +201,11 @@ public class FileUtil {
             int exitCode = process.waitFor();
             if (exitCode != 0) {
                 logger.error("Failed to run command {} (exit code {})", command, exitCode);
-                RequestUtil.sendAlert("Command Fail (" + service + ")", "Command failed: '" + command + "' (exit code " + exitCode + ")", "high");
+                RequestUtil.sendAlert("failure", "Command Fail (" + service + ")", "Command failed: '" + command + "' (exit code " + exitCode + ")", "high");
             }
         } catch (IOException | InterruptedException exception) {
             logger.error("Failed to run command '{}'", command, exception);
-            RequestUtil.sendAlert("Command Fail (" + service + ")", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Command Fail (" + service + ")", exception.getMessage(), "high");
         }
     }
 }

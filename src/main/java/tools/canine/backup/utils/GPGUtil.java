@@ -60,7 +60,7 @@ public class GPGUtil {
             return true;
         } catch (IOException | PGPException exception) {
             logger.error("Unable to encrypt file", exception);
-            RequestUtil.sendAlert("Failed Encryption", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Failed Encryption", exception.getMessage(), "max");
             return false;
         }
     }
@@ -78,7 +78,7 @@ public class GPGUtil {
             }
         } catch (IOException | PGPException exception) {
             logger.error("Failed to read public key", exception);
-            RequestUtil.sendAlert("Failed Encryption", exception.getMessage(), "high");
+            RequestUtil.sendAlert("failure", "Failed Encryption", exception.getMessage(), "max");
         }
 
         return null;
