@@ -11,7 +11,8 @@
         "bucket": "xxx"
     },
     "ntfy": {
-        "topic": "https://notify.example.com/alerts",
+        "normal-alerts": "https://notify.xxx.com/backup-normal",
+        "failure-alerts": "https://notify.xxx.com/backup-failures",
         "token": "xxx"
     },
     "mysql": {

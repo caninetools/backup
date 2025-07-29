@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class CanineBackup {
 
-    public static Logger logger;
+    private static Logger logger;
     private static BackupConfig config;
     private static String timeStamp;
     private static final String USER_AGENT = "caninebackup (+https://github.com/caninetools/backup)";
